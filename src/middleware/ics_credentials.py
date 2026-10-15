@@ -60,17 +60,29 @@ def validated_h10301(capture):
     fields = capture.get('raw_fields')
     if not isinstance(fields, dict):
         return False
-    if not (isinstance(frame, str) and len(frame) == 26 and
+    verified = _verified_source(capture)
+    if not (verified and verified.get('status') == 'decoded' and
+            verified.get('format') == 'H10301 (26-bit)' and
+            verified.get('bit_length') == 26 and
+            verified.get('fc') == fc and verified.get('id') == card_id and
+            verified.get('raw_fields') == fields):
+        return False
+    if (isinstance(frame, str) and len(frame) == 26 and
             set(frame) <= {'0', '1'} and
             fields.get('wiedata') == frame and
-            fields.get('fc') == str(fc) and fields.get('id') == str(card_id)):
-        return False
-    verified = _verified_source(capture)
-    return bool(verified and verified.get('status') == 'decoded' and
-                verified.get('format') == 'H10301 (26-bit)' and
-                verified.get('fc') == fc and verified.get('id') == card_id and
-                verified.get('wiedata') == frame and
-                verified.get('raw_fields') == fields)
+            fields.get('fc') == str(fc) and fields.get('id') == str(card_id) and
+            verified.get('wiedata') == frame):
+        return True
+    import ics_decoder
+    for field in ('sio_pacs', 'hex'):
+        payload = verified.get(field)
+        if not isinstance(payload, str) or capture.get(field) != payload:
+            continue
+        parsed = ics_decoder.parse_sio_pacs(payload, bit_length=26)
+        if (parsed['valid'] and parsed['fc'] == fc and parsed['cn'] == card_id and
+                parsed['raw_26bit'] == verified.get('raw') == capture.get('raw')):
+            return True
+    return False
 
 
 def can_write(capture):

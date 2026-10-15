@@ -111,6 +111,7 @@ cn = (shifted_bits >> 1) & 0xFFFF     # Card Number (16 bits)
 | Credential Type | Detected Blank | Action |
 |-----------------|----------------|--------|
 | Validated decoder-reported H10301 WIEData with FC/CN | LF T5577 | Write H10301 after explicit confirmation |
+| Validated decrypted 26-bit PACS-derived H10301 without WIEData | LF T5577 | Write H10301 after explicit confirmation |
 | Valid nonzero decoder-reported legacy BLK7 | HF iClass | Write legacy data after explicit confirmation |
 | Unknown/unsupported source without valid legacy BLK7 | Any | Writing unavailable |
 
